@@ -2,7 +2,6 @@
     const myConnector = tableau.makeConnector();
 
     myConnector.getSchema = function(schemaCallback) {
-        // Define your schema with all specified columns
         const cols = [
             { id: "month", alias: "Month", dataType: tableau.dataTypeEnum.string },
             { id: "town", alias: "Town", dataType: tableau.dataTypeEnum.string },
@@ -28,51 +27,37 @@
 
     myConnector.getData = function(table, doneCallback) {
         const baseUrl = "https://s3.ap-southeast-1.amazonaws.com/table-downloads-ingest.data.gov.sg/d_8b84c4ee58e3cfc0ece0d773c8ca6abc/6f8109f7bce05c219b3825a999cc7f3a02cbc19fe536138a5eaf86bfe6d8711f.csv";
-        let offset = 0;
-        const limit = 100;
-        let hasMoreData = true;
 
-        // Function to fetch data in chunks
-        const fetchData = function() {
-            const url = `${baseUrl}?limit=${limit}&offset=${offset}`;
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    const rows = data.results.map(item => {
-                        return {
+        fetch(baseUrl)
+            .then(response => response.text())
+            .then(csvData => {
+                Papa.parse(csvData, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        const rows = results.data.map(item => ({
                             month: item.month,
                             town: item.town,
                             flat_type: item.flat_type,
                             block: item.block,
                             street_name: item.street_name,
                             storey_range: item.storey_range,
-                            floor_area_sqm: item.floor_area_sqm,
+                            floor_area_sqm: parseFloat(item.floor_area_sqm),
                             flat_model: item.flat_model,
-                            lease_commence_date: item.lease_commence_date,
+                            lease_commence_date: parseInt(item.lease_commence_date, 10),
                             remaining_lease: item.remaining_lease,
-                            resale_price: item.resale_price
-                        };
-                    });
+                            resale_price: parseFloat(item.resale_price)
+                        }));
 
-                    table.appendRows(rows);
-                    offset += limit;
-                    hasMoreData = data.results.length === limit;
-
-                    // Continue fetching if there are more rows
-                    if (hasMoreData) {
-                        fetchData();
-                    } else {
+                        table.appendRows(rows);
                         doneCallback();
                     }
-                })
-                .catch(error => {
-                    console.error("Error fetching data: ", error);
-                    doneCallback();
                 });
-        };
-
-        fetchData();
+            })
+            .catch(error => {
+                console.error("Error fetching data: ", error);
+                doneCallback();
+            });
     };
 
     tableau.registerConnector(myConnector);
