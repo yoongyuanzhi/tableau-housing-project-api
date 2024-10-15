@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tableau Web Data Connector</title>
+    <script src="connector.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        tableau.extensions.initializeAsync().then(() => {
+            tableau.submit();
+        });
+    </script>
+</body>
+</html>
