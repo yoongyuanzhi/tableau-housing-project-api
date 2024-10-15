@@ -2,13 +2,11 @@
 <html>
 <head>
     <title>Tableau Web Data Connector</title>
+    <script src="https://cdn.jsdelivr.net/npm/tableauwdc@2.3.0/dist/tableauwdc.min.js"></script>
     <script src="connector.js"></script>
 </head>
 <body>
-    <script type="text/javascript">
-        tableau.extensions.initializeAsync().then(() => {
-            tableau.submit();
-        });
-    </script>
+    <h2>Tableau Housing Project API Connector</h2>
+    <button onclick="tableau.connectionName = 'ResaleFlatPrices'; tableau.submit();">Get Data</button>
 </body>
 </html>
